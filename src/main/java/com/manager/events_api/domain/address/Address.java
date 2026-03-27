@@ -1,4 +1,4 @@
-package com.manager.events_api.domain.adress;
+package com.manager.events_api.domain.address;
 
 import com.manager.events_api.domain.event.Event;
 import jakarta.persistence.*;
