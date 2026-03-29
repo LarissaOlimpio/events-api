@@ -1,6 +1,5 @@
-package com.manager.events_api.repositories;
+package com.manager.events_api.domain.coupon;
 
-import com.manager.events_api.domain.coupon.Coupon;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
