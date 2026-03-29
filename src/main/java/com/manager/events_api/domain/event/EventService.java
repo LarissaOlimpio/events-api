@@ -13,7 +13,7 @@ public class EventService {
         this.eventMapper = eventMapper;
     }
 
-    public Event create(EventRequestDTO data) {
+    public Event createEvent(EventRequestDTO data) {
         Event newEvent = eventMapper.map(data);
         return repository.save(newEvent);
     }

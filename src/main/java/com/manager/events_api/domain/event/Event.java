@@ -5,11 +5,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "event")
+@Table(name = "events")
 public class Event {
 
     @Id
@@ -20,6 +20,33 @@ public class Event {
     private String description;
     private String eventUrl;
     private Boolean remote;
-    private Date date;
+    private OffsetDateTime date;
+
+    public Event() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setEventUrl(String eventUrl) {
+        this.eventUrl = eventUrl;
+    }
+
+    public void setRemote(Boolean remote) {
+        this.remote = remote;
+    }
+
+    public void setDate(OffsetDateTime date) {
+        this.date = date;
+    }
 
 }
