@@ -19,4 +19,40 @@ public class Coupon {
     @ManyToOne
     @JoinColumn(name = "event_id")
     private Event event;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public OffsetDateTime getValid() {
+        return valid;
+    }
+
+    public void setValid(OffsetDateTime valid) {
+        this.valid = valid;
+    }
+
+    public Integer getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(Integer discount) {
+        this.discount = discount;
+    }
+
+    public Event getEvent() {
+        return event;
+    }
+
+    public void setEvent(Event event) {
+        this.event = event;
+    }
 }
