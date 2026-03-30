@@ -8,4 +8,7 @@ import org.mapstruct.MappingConstants;
 public interface EventMapper {
     @Mapping(target = "id", ignore = true)
     Event map(EventRequestDTO eventRequestDTO);
+
+    @Mapping(target = "id", source = "event.id")
+    EventResponseDTO toResponseDTO(Event event);
 }
