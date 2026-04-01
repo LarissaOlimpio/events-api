@@ -1,5 +1,8 @@
 package com.manager.events_api.domain.event;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,5 +19,11 @@ public class EventService {
     public Event createEvent(EventRequestDTO data) {
         Event newEvent = eventMapper.map(data);
         return repository.save(newEvent);
+    }
+
+    public Page<EventResponseDTO> getAllEvents(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> eventsPage = this.repository.findAll(pageable);
+        return eventsPage.map(eventMapper::toResponseDTO);
     }
 }
