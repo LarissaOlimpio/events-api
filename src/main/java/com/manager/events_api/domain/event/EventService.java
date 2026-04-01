@@ -5,6 +5,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
+
 @Service
 public class EventService {
 
@@ -21,9 +23,10 @@ public class EventService {
         return repository.save(newEvent);
     }
 
-    public Page<EventResponseDTO> getAllEvents(int page, int size) {
+    public Page<EventResponseDTO> getUpComingEvents(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Event> eventsPage = this.repository.findAll(pageable);
+        OffsetDateTime now = OffsetDateTime.now();
+        Page<Event> eventsPage = this.repository.findByDateGreaterThanEqual(now, pageable);
         return eventsPage.map(eventMapper::toResponseDTO);
     }
 }
