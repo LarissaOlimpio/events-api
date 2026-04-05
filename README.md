@@ -37,7 +37,7 @@ Follow these steps to run the project locally:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/LarissaOlimpio/events-api.git](https://github.com/LarissaOlimpio/events-api.git)
+    git clone https://github.com/LarissaOlimpio/events-api.git
     ```
 
 2.  **Configure the Database:**
