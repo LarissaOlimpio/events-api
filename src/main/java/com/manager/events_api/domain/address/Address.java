@@ -20,4 +20,23 @@ public class Address {
     @JoinColumn(name = "event_id")
     private Event event;
 
+    public UUID getId() {
+        return id;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getUf() {
+        return uf;
+    }
+
+    public void setUf(String uf) {
+        this.uf = uf;
+    }
 }

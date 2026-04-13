@@ -1,9 +1,7 @@
 package com.manager.events_api.domain.event;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.manager.events_api.domain.address.Address;
+import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -21,6 +19,9 @@ public class Event {
     private String eventUrl;
     private Boolean remote;
     private OffsetDateTime date;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id", nullable = true)
+    private Address address;
 
     public Event() {
     }
@@ -69,4 +70,11 @@ public class Event {
         this.date = date;
     }
 
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
 }

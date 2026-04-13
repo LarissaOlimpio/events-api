@@ -1,5 +1,6 @@
 package com.manager.events_api.domain.event;
 
+import com.manager.events_api.infra.exceptions.BusinessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,14 @@ public class EventService {
     }
 
     public Event createEvent(EventRequestDTO data) {
+        if (!data.remote() && data.address() == null) {
+            throw new BusinessException("Address is required");
+        }
         Event newEvent = eventMapper.map(data);
+
+        if (newEvent.getRemote()) {
+            newEvent.setAddress(null);
+        }
         return repository.save(newEvent);
     }
 
