@@ -4,6 +4,7 @@ import com.manager.events_api.infra.exceptions.BusinessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -31,10 +32,9 @@ public class EventService {
         return repository.save(newEvent);
     }
 
-    public Page<EventResponseDTO> getUpComingEvents(int page, int size) {
+    public Page<EventResponseDTO> getUpComingEvents(int page, int size, String title, String city, String uf, OffsetDateTime startDate, OffsetDateTime endDate) {
         Pageable pageable = PageRequest.of(page, size);
-        OffsetDateTime now = OffsetDateTime.now();
-        Page<Event> eventsPage = this.repository.findByDateGreaterThanEqual(now, pageable);
-        return eventsPage.map(eventMapper::toResponseDTO);
+        Specification<Event> spec = EventSpecifications.getEventsWithFilters(title, city, uf, startDate, endDate);
+        return repository.findAll(spec, pageable).map(eventMapper::toResponseDTO);
     }
 }

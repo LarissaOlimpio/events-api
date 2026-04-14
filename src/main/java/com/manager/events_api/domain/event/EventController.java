@@ -1,9 +1,12 @@
 package com.manager.events_api.domain.event;
 
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.time.OffsetDateTime;
 
 
 @RestController
@@ -26,8 +29,14 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<EventResponseDTO>> getEvents(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-        Page<EventResponseDTO> allEvents = this.eventService.getUpComingEvents(page, size);
+    public ResponseEntity<Page<EventResponseDTO>> getEvents(@RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size,
+                                                            @RequestParam(required = false) String title,
+                                                            @RequestParam(required = false) String city,
+                                                            @RequestParam(required = false) String uf,
+                                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime startDate,
+                                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime endDate) {
+        Page<EventResponseDTO> allEvents = this.eventService.getUpComingEvents(page, size, title, city, uf, startDate, endDate);
         return ResponseEntity.ok(allEvents);
     }
 }
