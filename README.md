@@ -1,7 +1,8 @@
 # 🎟️ Events Management API
 
 A robust RESTful API developed with Spring Boot for managing events, discount coupons, and locations. This project provides a scalable backend solution for event organizers to handle event data, address associations, and promotional codes.
-
+> 🚧 **Under Development**  
+> This project is currently under development and new features are continuously being added.
 ## 🛠️ Tech Stack
 
 This project was built using industry-standard backend technologies:
