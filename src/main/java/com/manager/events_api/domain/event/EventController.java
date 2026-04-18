@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 
 @RestController
@@ -38,5 +39,11 @@ public class EventController {
                                                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime endDate) {
         Page<EventResponseDTO> allEvents = this.eventService.getUpComingEvents(page, size, title, city, uf, startDate, endDate);
         return ResponseEntity.ok(allEvents);
+    }
+
+    @GetMapping("/{eventID}")
+    public ResponseEntity<EventDetailsDTO> getEventsDetails(@PathVariable UUID eventID) {
+        EventDetailsDTO eventDetailsDTO = eventService.getEventDetails(eventID);
+        return ResponseEntity.ok(eventDetailsDTO);
     }
 }

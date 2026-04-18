@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Service
 public class EventService {
@@ -36,5 +37,12 @@ public class EventService {
         Pageable pageable = PageRequest.of(page, size);
         Specification<Event> spec = EventSpecifications.getEventsWithFilters(title, city, uf, startDate, endDate);
         return repository.findAll(spec, pageable).map(eventMapper::toResponseDTO);
+    }
+
+    public EventDetailsDTO getEventDetails(UUID eventId) {
+        Event event = this.repository.findById(eventId)
+                .orElseThrow(() -> new BusinessException("Event not found with the provided ID"));
+        return eventMapper.toDetailsDTO(event);
+
     }
 }

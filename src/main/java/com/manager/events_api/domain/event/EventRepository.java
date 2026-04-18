@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecificationExecutor<Event> {
@@ -16,4 +17,11 @@ public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecific
     @NonNull
     @EntityGraph(attributePaths = {"address"})
     Page<Event> findAll(@NonNull Specification<Event> spec, @NonNull Pageable pageable);
+
+    @Override
+    @NonNull
+    @EntityGraph(attributePaths = {"address", "coupons"})
+    Optional<Event> findById(UUID eventId);
+
+
 }

@@ -1,9 +1,11 @@
 package com.manager.events_api.domain.event;
 
 import com.manager.events_api.domain.address.Address;
+import com.manager.events_api.domain.coupon.Coupon;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -22,6 +24,8 @@ public class Event {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id", nullable = true)
     private Address address;
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Coupon> coupons;
 
     public Event() {
     }
@@ -77,4 +81,9 @@ public class Event {
     public void setAddress(Address address) {
         this.address = address;
     }
+
+    public List<Coupon> getCoupons() {
+        return coupons;
+    }
+    
 }
