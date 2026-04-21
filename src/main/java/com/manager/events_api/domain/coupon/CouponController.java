@@ -30,4 +30,16 @@ public class CouponController {
         Page<CouponResponseDTO> allCoupons = this.couponService.getAllCouponByEvent(eventId, page, size);
         return ResponseEntity.ok(allCoupons);
     }
+
+    @PutMapping("/{couponId}")
+    public ResponseEntity<CouponResponseDTO> update(@PathVariable UUID couponId, @RequestBody CouponRequestDTO data) {
+        Coupon updatedCoupon = this.couponService.updateCoupon(couponId, data);
+        return ResponseEntity.ok(couponMapper.toResponseDTO(updatedCoupon));
+    }
+
+    @DeleteMapping("/{couponId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID couponId) {
+        this.couponService.deleteCoupon(couponId);
+        return ResponseEntity.noContent().build();
+    }
 }
