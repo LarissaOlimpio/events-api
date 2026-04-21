@@ -46,4 +46,16 @@ public class EventController {
         EventDetailsDTO eventDetailsDTO = eventService.getEventDetails(eventID);
         return ResponseEntity.ok(eventDetailsDTO);
     }
+
+    @PutMapping("/{eventId}")
+    public ResponseEntity<EventResponseDTO> update(@PathVariable UUID eventId, @RequestBody EventRequestDTO data) {
+        Event updatedEvent = this.eventService.updateEvent(eventId, data);
+        return ResponseEntity.ok(eventMapper.toResponseDTO(updatedEvent));
+    }
+
+    @DeleteMapping("/{eventId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID eventId) {
+        this.eventService.deleteEvent(eventId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -1,6 +1,8 @@
 package com.manager.events_api.domain.event;
 
+import com.manager.events_api.domain.address.Address;
 import com.manager.events_api.infra.exceptions.BusinessException;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,5 +46,36 @@ public class EventService {
                 .orElseThrow(() -> new BusinessException("Event not found with the provided ID"));
         return eventMapper.toDetailsDTO(event);
 
+    }
+
+    public void deleteEvent(UUID eventId) {
+        Event event = repository.findById(eventId)
+                .orElseThrow(() -> new BusinessException("Event not found."));
+        this.repository.delete(event);
+    }
+
+    @Transactional
+    public Event updateEvent(UUID eventId, EventRequestDTO data) {
+        Event event = repository.findById(eventId)
+                .orElseThrow(() -> new BusinessException("Event not found."));
+        eventMapper.updateEventFromDTO(data, event);
+        handleAddressUpdate(event, data);
+
+        return repository.save(event);
+    }
+
+    private void handleAddressUpdate(Event event, EventRequestDTO data) {
+        if (Boolean.TRUE.equals(data.remote())) {
+            event.setAddress(null);
+            return;
+        }
+        if (event.getAddress() == null) {
+            event.setAddress(new Address());
+        }
+
+        Address address = event.getAddress();
+        address.setCity(data.city());
+        address.setUf(data.uf());
+        address.setEvent(event);
     }
 }

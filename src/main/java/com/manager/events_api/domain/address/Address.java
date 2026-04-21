@@ -39,4 +39,7 @@ public class Address {
     public void setUf(String uf) {
         this.uf = uf;
     }
+
+    public void setEvent(Event event) {
+    }
 }
