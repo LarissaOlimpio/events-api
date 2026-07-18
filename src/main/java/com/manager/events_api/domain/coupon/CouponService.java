@@ -24,6 +24,9 @@ public class CouponService {
     }
 
     public Coupon addCouponToEvent(UUID eventId, CouponRequestDTO data) {
+        if (data.validFrom().isAfter(data.validUntil())) {
+            throw new BusinessException("valid must be before valid Until");
+        }
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
         Coupon newCoupon = couponMapper.map(data);
         newCoupon.setEvent(event);
@@ -39,6 +42,9 @@ public class CouponService {
 
     @Transactional
     public Coupon updateCoupon(UUID couponId, CouponRequestDTO data) {
+        if (data.validFrom().isAfter(data.validUntil())) {
+            throw new BusinessException("valid must be before valid Until");
+        }
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new BusinessException("Coupon not found."));
 

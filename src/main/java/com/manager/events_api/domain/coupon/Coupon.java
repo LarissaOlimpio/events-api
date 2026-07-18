@@ -14,7 +14,8 @@ public class Coupon {
     private UUID id;
 
     private String code;
-    private OffsetDateTime valid;
+    private OffsetDateTime validFrom;
+    private OffsetDateTime validUntil;
     private Integer discount;
     @ManyToOne
     @JoinColumn(name = "event_id")
@@ -32,12 +33,20 @@ public class Coupon {
         this.code = code;
     }
 
-    public OffsetDateTime getValid() {
-        return valid;
+    public OffsetDateTime getValidFrom() {
+        return validFrom;
     }
 
-    public void setValid(OffsetDateTime valid) {
-        this.valid = valid;
+    public void setValidFrom(OffsetDateTime valid) {
+        this.validFrom = valid;
+    }
+
+    public OffsetDateTime getValidUntil() {
+        return validUntil;
+    }
+
+    public void setValidUntil(OffsetDateTime validUntil) {
+        this.validUntil = validUntil;
     }
 
     public Integer getDiscount() {

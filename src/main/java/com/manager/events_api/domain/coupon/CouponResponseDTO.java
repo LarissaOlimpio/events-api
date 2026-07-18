@@ -7,7 +7,8 @@ public record CouponResponseDTO(
         UUID id,
         String code,
         Integer discount,
-        OffsetDateTime valid,
+        OffsetDateTime validFrom,
+        OffsetDateTime validUntil,
         UUID eventId
 ) {
 }
