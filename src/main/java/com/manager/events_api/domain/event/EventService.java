@@ -2,6 +2,7 @@ package com.manager.events_api.domain.event;
 
 import com.manager.events_api.domain.address.Address;
 import com.manager.events_api.infra.exceptions.BusinessException;
+import com.manager.events_api.infra.exceptions.EventFinishedException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +52,7 @@ public class EventService {
     public void deleteEvent(UUID eventId) {
         Event event = repository.findById(eventId)
                 .orElseThrow(() -> new BusinessException("Event not found."));
+        ensureEventIsEditable(event);
         this.repository.delete(event);
     }
 
@@ -58,6 +60,7 @@ public class EventService {
     public Event updateEvent(UUID eventId, EventRequestDTO data) {
         Event event = repository.findById(eventId)
                 .orElseThrow(() -> new BusinessException("Event not found."));
+        ensureEventIsEditable(event);
         eventMapper.updateEventFromDTO(data, event);
         handleAddressUpdate(event, data);
 
@@ -77,5 +80,11 @@ public class EventService {
         address.setCity(data.city());
         address.setUf(data.uf());
         address.setEvent(event);
+    }
+
+    public void ensureEventIsEditable(Event event) {
+        if (event.getStatus() == EventStatus.FINISHED) {
+            throw new EventFinishedException("Finished events cannot be edited or deleted");
+        }
     }
 }

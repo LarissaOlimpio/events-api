@@ -85,5 +85,9 @@ public class Event {
     public List<Coupon> getCoupons() {
         return coupons;
     }
-    
+
+    public EventStatus getStatus() {
+        return date.isBefore(OffsetDateTime.now()) ? EventStatus.FINISHED : EventStatus.UPCOMING;
+    }
+
 }
