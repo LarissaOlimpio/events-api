@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Service
@@ -24,10 +25,8 @@ public class CouponService {
     }
 
     public Coupon addCouponToEvent(UUID eventId, CouponRequestDTO data) {
-        if (data.validFrom().isAfter(data.validUntil())) {
-            throw new BusinessException("valid must be before valid Until");
-        }
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        validCouponDates(data.validFrom(), data.validUntil());
         Coupon newCoupon = couponMapper.map(data);
         newCoupon.setEvent(event);
         return couponRepository.save(newCoupon);
@@ -42,12 +41,9 @@ public class CouponService {
 
     @Transactional
     public Coupon updateCoupon(UUID couponId, CouponRequestDTO data) {
-        if (data.validFrom().isAfter(data.validUntil())) {
-            throw new BusinessException("valid must be before valid Until");
-        }
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new BusinessException("Coupon not found."));
-
+        validCouponDates(data.validFrom(), data.validUntil());
         couponMapper.updateCouponFromDTO(data, coupon);
         return couponRepository.save(coupon);
     }
@@ -56,6 +52,15 @@ public class CouponService {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new BusinessException("Coupon not found."));
         couponRepository.delete(coupon);
+    }
+
+    private void validCouponDates(OffsetDateTime validFrom, OffsetDateTime validUntil) {
+        if (validFrom.isAfter(validUntil)) {
+            throw new BusinessException("valid must be before valid Until");
+        }
+        if (validUntil.isBefore(OffsetDateTime.now())) {
+            throw new BusinessException("validUntil must not be in the past");
+        }
     }
 
 }
