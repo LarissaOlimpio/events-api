@@ -56,7 +56,7 @@ public class CouponService {
 
     private void validCouponDates(OffsetDateTime validFrom, OffsetDateTime validUntil) {
         if (validFrom.isAfter(validUntil)) {
-            throw new BusinessException("valid must be before valid Until");
+            throw new BusinessException("validFrom must be before valid Until");
         }
         if (validUntil.isBefore(OffsetDateTime.now())) {
             throw new BusinessException("validUntil must not be in the past");

@@ -25,6 +25,7 @@ public class EventService {
     }
 
     public Event createEvent(EventRequestDTO data) {
+        validEventDate(data.date());
         if (!data.remote() && data.address() == null) {
             throw new BusinessException("Address is required");
         }
@@ -61,6 +62,7 @@ public class EventService {
         Event event = repository.findById(eventId)
                 .orElseThrow(() -> new BusinessException("Event not found."));
         ensureEventIsEditable(event);
+        validEventDate(data.date());
         eventMapper.updateEventFromDTO(data, event);
         handleAddressUpdate(event, data);
 
@@ -82,9 +84,15 @@ public class EventService {
         address.setEvent(event);
     }
 
-    public void ensureEventIsEditable(Event event) {
+    private void ensureEventIsEditable(Event event) {
         if (event.getStatus() == EventStatus.FINISHED) {
             throw new EventFinishedException("Finished events cannot be edited or deleted");
+        }
+    }
+
+    private void validEventDate(OffsetDateTime date) {
+        if (date.isBefore(OffsetDateTime.now())) {
+            throw new BusinessException("Event date must be in the future");
         }
     }
 }
