@@ -24,6 +24,50 @@ public class EventServiceTest {
     private EventService eventService;
 
     @Test
+    void shouldThrowExceptionWhenCreatingDuplicateEvent() {
+        EventRequestDTO data = new EventRequestDTO(
+                "Workshop Java",
+                "Description",
+                OffsetDateTime.now().plusDays(5),
+                true,
+                "http://event.com",
+                null
+        );
+        when(repository.existsByTitleAndDate(data.title(), data.date())).thenReturn(true);
+        assertThrows(BusinessException.class, () -> eventService.createEvent(data));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDateInCreateIsInThePast() {
+        EventRequestDTO data = new EventRequestDTO(
+                "Workshop Java",
+                "Description",
+                OffsetDateTime.now().minusDays(5),
+                true,
+                "http://event.com",
+                null
+        );
+        assertThrows(BusinessException.class, () -> eventService.createEvent(data));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenEventIsNotRemoteAndIsWithoutAddressInCreate() {
+        EventRequestDTO data = new EventRequestDTO(
+                "Workshop Java",
+                "Description",
+                OffsetDateTime.now().plusDays(5),
+                false,
+                "http://event.com",
+                null
+        );
+        assertThrows(BusinessException.class, () -> eventService.createEvent(data));
+        verify(repository, never()).save(any());
+    }
+
+
+    @Test
     void shouldThrowExceptionWhenUpdatingFinishedEvent() {
         Event finishedEvent = new Event();
         finishedEvent.setDate(OffsetDateTime.now().minusDays(1));
@@ -46,7 +90,7 @@ public class EventServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenNewDateIsInThePast() {
+    void shouldThrowExceptionWhenNewDateInUpdatingIsInThePast() {
         Event upcomingEvent = new Event();
         upcomingEvent.setDate(OffsetDateTime.now().plusDays(10));
 
@@ -66,5 +110,38 @@ public class EventServiceTest {
         verify(repository, never()).save(any());
 
     }
+
+    @Test
+    void shouldThrowExceptionWhenEventIsNotRemoteAndIsWithoutAddressInUpdating() {
+        Event event = new Event();
+        event.setDate(OffsetDateTime.now().plusDays(20));
+        UUID eventId = UUID.randomUUID();
+
+        when(repository.findById(eventId)).thenReturn(Optional.of(event));
+
+        EventRequestDTO data = new EventRequestDTO(
+                "Updated title",
+                "Updated description",
+                OffsetDateTime.now().plusDays(5),
+                false,
+                "http://event.com",
+                null
+        );
+        assertThrows(BusinessException.class, () -> eventService.updateEvent(eventId, data));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeleteFinishedEvent() {
+        Event event = new Event();
+        event.setDate(OffsetDateTime.now().minusDays(1));
+        UUID eventId = UUID.randomUUID();
+
+        when(repository.findById(eventId)).thenReturn(Optional.of(event));
+
+        assertThrows(EventFinishedException.class, () -> eventService.deleteEvent(eventId));
+        verify(repository, never()).delete(any(Event.class));
+    }
+
 
 }

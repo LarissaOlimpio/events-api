@@ -27,6 +27,7 @@ public class EventService {
     }
 
     public Event createEvent(EventRequestDTO data) {
+        ensureEventDoesNotAlreadyExist(data);
         validEventDate(data.date());
         if (!data.remote() && data.address() == null) {
             throw new BusinessException("Address is required");
@@ -65,8 +66,8 @@ public class EventService {
                 .orElseThrow(() -> new BusinessException("Event not found."));
         ensureEventIsEditable(event);
         validEventDate(data.date());
-        eventMapper.updateEventFromDTO(data, event);
         handleAddressUpdate(event, data);
+        eventMapper.updateEventFromDTO(data, event);
 
         return repository.save(event);
     }
@@ -96,6 +97,13 @@ public class EventService {
     private void validEventDate(OffsetDateTime date) {
         if (date.isBefore(OffsetDateTime.now())) {
             throw new BusinessException("Event date must be in the future");
+        }
+    }
+
+    private void ensureEventDoesNotAlreadyExist(EventRequestDTO data) {
+        boolean exists = repository.existsByTitleAndDate(data.title(), data.date());
+        if (exists) {
+            throw new BusinessException("An event with this title and date already exists");
         }
     }
 }
