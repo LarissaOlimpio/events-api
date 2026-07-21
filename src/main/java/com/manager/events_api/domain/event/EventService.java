@@ -1,6 +1,6 @@
 package com.manager.events_api.domain.event;
 
-import com.manager.events_api.domain.address.Address;
+import com.manager.events_api.domain.address.AddressMapper;
 import com.manager.events_api.infra.exceptions.BusinessException;
 import com.manager.events_api.infra.exceptions.EventFinishedException;
 import jakarta.transaction.Transactional;
@@ -18,10 +18,12 @@ public class EventService {
 
     private final EventRepository repository;
     private final EventMapper eventMapper;
+    private final AddressMapper addressMapper;
 
-    public EventService(EventRepository repository, EventMapper eventMapper) {
+    public EventService(EventRepository repository, EventMapper eventMapper, AddressMapper addressMapper) {
         this.repository = repository;
         this.eventMapper = eventMapper;
+        this.addressMapper = addressMapper;
     }
 
     public Event createEvent(EventRequestDTO data) {
@@ -74,14 +76,15 @@ public class EventService {
             event.setAddress(null);
             return;
         }
+        if (data.address() == null) {
+            throw new BusinessException("Address is required");
+        }
         if (event.getAddress() == null) {
-            event.setAddress(new Address());
+            event.setAddress(addressMapper.map(data.address()));
+        } else {
+            addressMapper.update(data.address(), event.getAddress());
         }
 
-        Address address = event.getAddress();
-        address.setCity(data.city());
-        address.setUf(data.uf());
-        address.setEvent(event);
     }
 
     private void ensureEventIsEditable(Event event) {

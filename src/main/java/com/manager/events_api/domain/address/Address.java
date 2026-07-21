@@ -41,5 +41,6 @@ public class Address {
     }
 
     public void setEvent(Event event) {
+        this.event = event;
     }
 }
