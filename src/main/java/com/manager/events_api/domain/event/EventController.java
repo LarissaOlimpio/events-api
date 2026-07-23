@@ -1,5 +1,6 @@
 package com.manager.events_api.domain.event;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventResponseDTO> create(@RequestBody EventRequestDTO data, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<EventResponseDTO> create(@RequestBody @Valid EventRequestDTO data, UriComponentsBuilder uriBuilder) {
         Event newEvent = this.eventService.createEvent(data);
         EventResponseDTO response = eventMapper.toResponseDTO(newEvent);
         var uri = uriBuilder.path("/api/event/{id}").buildAndExpand(response.id()).toUri();
@@ -48,7 +49,7 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}")
-    public ResponseEntity<EventResponseDTO> update(@PathVariable UUID eventId, @RequestBody EventRequestDTO data) {
+    public ResponseEntity<EventResponseDTO> update(@PathVariable UUID eventId, @RequestBody @Valid EventRequestDTO data) {
         Event updatedEvent = this.eventService.updateEvent(eventId, data);
         return ResponseEntity.ok(eventMapper.toResponseDTO(updatedEvent));
     }
