@@ -20,8 +20,34 @@ public class EventServiceTest {
 
     @Mock
     private EventRepository repository;
+
+    @Mock
+    private EventMapper eventMapper;
+
     @InjectMocks
     private EventService eventService;
+
+    @Test
+    void shouldCreateEventSuccessfullyWhenDatesAreValid() {
+        EventRequestDTO data = new EventRequestDTO(
+                "Workshop Java",
+                "Description",
+                OffsetDateTime.now().plusDays(5),
+                true,
+                "http://event.com",
+                null
+        );
+        Event mappedEvent = new Event();
+        mappedEvent.setRemote(data.remote());
+        when(eventMapper.map(data)).thenReturn(mappedEvent);
+        when(repository.save(any(Event.class))).thenReturn(mappedEvent);
+        Event result = eventService.createEvent(data);
+
+        assertNotNull(result);
+        verify(eventMapper, times(1)).map(data);
+        verify(repository, times(1)).save(any(Event.class));
+
+    }
 
     @Test
     void shouldThrowExceptionWhenCreatingDuplicateEvent() {
@@ -66,6 +92,30 @@ public class EventServiceTest {
         verify(repository, never()).save(any());
     }
 
+    @Test
+    void shouldUpdatingEventSuccessfullyWhenDatesAreValid() {
+        Event upComingExintingEvent = new Event();
+        UUID eventId = UUID.randomUUID();
+        upComingExintingEvent.setDate(OffsetDateTime.now().plusDays(10));
+
+        when(repository.findById(eventId)).thenReturn(Optional.of(upComingExintingEvent));
+
+        EventRequestDTO data = new EventRequestDTO(
+                "Workshop Java",
+                "Description",
+                OffsetDateTime.now().plusDays(5),
+                true,
+                "http://event.com",
+                null
+        );
+
+        when(repository.save(any(Event.class))).thenReturn(upComingExintingEvent);
+        eventService.updateEvent(eventId, data);
+
+        verify(eventMapper, times(1)).updateEventFromDTO(data, upComingExintingEvent);
+        verify(repository, times(1)).save(any(Event.class));
+
+    }
 
     @Test
     void shouldThrowExceptionWhenUpdatingFinishedEvent() {
@@ -130,6 +180,19 @@ public class EventServiceTest {
         assertThrows(BusinessException.class, () -> eventService.updateEvent(eventId, data));
         verify(repository, never()).save(any());
     }
+
+    @Test
+    void shouldDeleteSuccessfullyWhenEventWasNotFinished() {
+        Event event = new Event();
+        event.setDate(OffsetDateTime.now().plusDays(1));
+        UUID eventId = UUID.randomUUID();
+
+        when(repository.findById(eventId)).thenReturn(Optional.of(event));
+        eventService.deleteEvent(eventId);
+
+        verify(repository, times(1)).delete(any(Event.class));
+    }
+
 
     @Test
     void shouldThrowExceptionWhenDeleteFinishedEvent() {
