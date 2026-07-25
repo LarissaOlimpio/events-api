@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
 
 public record EventRequestDTO(
         @NotBlank(message = "Title is required")
-        @Size(min = 3, max = 255, message = "Title must be between 3 and 255 characters")
+        @Size(min = 3, max = 255, message = "Title must be between 3 and 100 characters")
         String title,
 
         @NotBlank(message = "Description is required")
@@ -22,11 +22,10 @@ public record EventRequestDTO(
         OffsetDateTime date,
 
         @NotNull(message = "Remote status is required")
-
         Boolean remote,
 
         @NotNull(message = "Url is required")
         String eventUrl,
-        
+
         AddressRequestDTO address) {
 }
