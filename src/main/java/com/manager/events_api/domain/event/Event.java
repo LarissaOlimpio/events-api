@@ -2,6 +2,7 @@ package com.manager.events_api.domain.event;
 
 import com.manager.events_api.domain.address.Address;
 import com.manager.events_api.domain.coupon.Coupon;
+import com.manager.events_api.domain.user.User;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
@@ -26,6 +27,9 @@ public class Event {
     private Address address;
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Coupon> coupons;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User owner;
 
     public Event() {
     }
@@ -90,4 +94,11 @@ public class Event {
         return date.isBefore(OffsetDateTime.now()) ? EventStatus.FINISHED : EventStatus.UPCOMING;
     }
 
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
 }
