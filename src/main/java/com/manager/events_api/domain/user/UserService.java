@@ -1,5 +1,6 @@
 package com.manager.events_api.domain.user;
 
+import com.manager.events_api.infra.exceptions.BusinessException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,23 +16,30 @@ public class UserService {
     }
 
     public User createUser(UserRequestDTO data) {
-        ensureEmailIsAvaliable(data.email());
-        Role role = parseRole(data.role());
+        ensureEmailIsAvailable(data.email());
 
         User newUser = new User();
         newUser.setName(data.name());
         newUser.setEmail(data.email());
         newUser.setPassword(passwordEncoder.encode(data.password()));
-        newUser.setRole(Role.valueOf(data.role()));
+        newUser.setRole(parseRole(data.role()));
 
         return userRepository.save(newUser);
     }
 
-    private void ensureEmailIsAvaliable(String data) {
-        return;
+    private void ensureEmailIsAvailable(String data) {
+        boolean exists = userRepository.existsByEmail(data);
+        if (exists) {
+            throw new BusinessException("User with email " + data + " already exists");
+        }
+
     }
 
     private Role parseRole(String role) {
-        return Role.valueOf(role.toUpperCase());
+        try {
+            return Role.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("Invalid role: " + role);
+        }
     }
 }

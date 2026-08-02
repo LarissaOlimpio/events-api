@@ -13,13 +13,18 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserMapper userMapper) {
         this.userService = userService;
+        this.userMapper = userMapper;
     }
 
     @PostMapping
-    public ResponseEntity<UserRequestDTO> create(@RequestBody @Valid UserRequestDTO data, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<UserResponseDTO> create(@RequestBody @Valid UserRequestDTO data, UriComponentsBuilder uriBuilder) {
         User newUser = this.userService.createUser(data);
+        UserResponseDTO response = userMapper.toUserResponseDTO(newUser);
+        var uri = uriBuilder.path("/api/user/{id}").buildAndExpand(response.id()).toUri();
+        return ResponseEntity.created(uri).body(response);
     }
 }
