@@ -1,7 +1,6 @@
 package com.manager.events_api.domain.user;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 
 import java.util.UUID;
 
@@ -20,6 +19,10 @@ public class User {
     private Role role;
 
     public User() {
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getName() {
