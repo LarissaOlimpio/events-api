@@ -1,10 +1,14 @@
 package com.manager.events_api.domain.user;
 
 import com.manager.events_api.infra.exceptions.BusinessException;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -55,5 +59,21 @@ public class UserService {
             users = userRepository.findByNameContainingIgnoreCase(name.trim(), pageable);
         }
         return users.map(userMapper::toUserResponseDTO);
+    }
+
+    @Transactional
+    public User updateUser(UUID userId, @Valid UserUpdateRequestDTO data) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("User with id " + userId + " not found"));
+        ensureEmailIsAvailableInUpdate(userId, data.email());
+        userMapper.updateUserFromDTO(data, user);
+        return userRepository.save(user);
+    }
+
+    private void ensureEmailIsAvailableInUpdate(UUID userId, String email) {
+        boolean exists = userRepository.existsByEmailAndIdNot(userId, email);
+        if (exists) {
+            throw new BusinessException("User with email " + email + " already exists");
+        }
     }
 }
