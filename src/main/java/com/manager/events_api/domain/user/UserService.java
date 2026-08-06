@@ -65,13 +65,13 @@ public class UserService {
     public User updateUser(UUID userId, @Valid UserUpdateRequestDTO data) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("User with id " + userId + " not found"));
-        ensureEmailIsAvailableInUpdate(userId, data.email());
+        ensureEmailIsAvailableInUpdate(data.email(), userId);
         userMapper.updateUserFromDTO(data, user);
         return userRepository.save(user);
     }
 
-    private void ensureEmailIsAvailableInUpdate(UUID userId, String email) {
-        boolean exists = userRepository.existsByEmailAndIdNot(userId, email);
+    private void ensureEmailIsAvailableInUpdate(String email, UUID userId) {
+        boolean exists = userRepository.existsByEmailAndIdNot(email, userId);
         if (exists) {
             throw new BusinessException("User with email " + email + " already exists");
         }
