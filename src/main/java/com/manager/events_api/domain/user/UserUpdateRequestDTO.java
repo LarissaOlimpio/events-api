@@ -1,12 +1,8 @@
 package com.manager.events_api.domain.user;
 
-import java.util.UUID;
-
-public record UserResponseDTO(
-        UUID id,
+public record UserUpdateRequestDTO(
         String name,
         String email,
         String role
 ) {
-
 }
