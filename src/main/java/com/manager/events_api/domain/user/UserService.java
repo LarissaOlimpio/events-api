@@ -76,4 +76,10 @@ public class UserService {
             throw new BusinessException("User with email " + email + " already exists");
         }
     }
+
+    public void deleteUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("User with id " + userId + " not found"));
+        userRepository.delete(user);
+    }
 }
