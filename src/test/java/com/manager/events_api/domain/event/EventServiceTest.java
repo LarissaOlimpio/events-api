@@ -52,9 +52,41 @@ public class EventServiceTest {
         assertNotNull(result);
         assertTrue(result.getRemote());
         assertNull(result.getAddress());
-        verify(eventMapper, times(1)).map(data);
-        verify(repository, times(1)).save(any(Event.class));
+        verify(eventMapper).map(data);
+        verify(repository).save(any(Event.class));
 
+    }
+
+    @Test
+    void shouldCreateEventSuccessfullyWhenEventIsRemoteAndRemoveAddress() {
+        Address address = new Address();
+        address.setCity("Sao Paulo");
+        address.setUf("SP");
+
+        EventRequestDTO data = new EventRequestDTO(
+                "Workshop Java",
+                "Description",
+                OffsetDateTime.now().plusDays(5),
+                true,
+                "http://event.com",
+                null
+        );
+
+        Event event = new Event();
+        event.setRemote(true);
+        event.setAddress(address);
+
+        when(eventMapper.map(data)).thenReturn(event);
+        when(repository.save(event)).thenReturn(event);
+
+        Event result = eventService.createEvent(data);
+
+        assertNotNull(result);
+        assertTrue(result.getRemote());
+        assertNull(result.getAddress());
+
+        verify(eventMapper).map(data);
+        verify(repository).save(event);
     }
 
     @Test
@@ -86,9 +118,26 @@ public class EventServiceTest {
         assertNotNull(result);
         assertFalse(result.getRemote());
         assertNotNull(result.getAddress());
-        verify(eventMapper, times(1)).map(data);
-        verify(repository, times(1)).save(any(Event.class));
+        verify(eventMapper).map(data);
+        verify(repository).save(any(Event.class));
 
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCreatingDuplicatedEvent() {
+        EventRequestDTO data = new EventRequestDTO(
+                "Workshop Java",
+                "Description",
+                OffsetDateTime.now().plusDays(5),
+                true,
+                "http://event.com",
+                null
+        );
+        when(repository.existsByTitleAndDate(data.title(), data.date())).thenReturn(true);
+
+        assertThrows(BusinessException.class, () -> eventService.createEvent(data));
+        verify(eventMapper, never()).map(any());
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -102,7 +151,9 @@ public class EventServiceTest {
                 null
         );
         assertThrows(BusinessException.class, () -> eventService.createEvent(data));
+        verify(eventMapper, never()).map(any());
         verify(repository, never()).save(any());
+
     }
 
     @Test
@@ -134,10 +185,9 @@ public class EventServiceTest {
         Event result = eventService.updateEvent(eventId, data);
 
         assertNotNull(result);
-        assertTrue(result.getRemote());
         assertNull(result.getAddress());
-        verify(eventMapper, times(1)).updateEventFromDTO(data, event);
-        verify(repository, times(1)).save(any(Event.class));
+        verify(eventMapper).updateEventFromDTO(data, event);
+        verify(repository).save(any(Event.class));
 
     }
 
@@ -242,6 +292,7 @@ public class EventServiceTest {
         );
 
         assertThrows(EventFinishedException.class, () -> eventService.updateEvent(eventId, data));
+        verify(eventMapper, never()).updateEventFromDTO(data, finishedEvent);
         verify(repository, never()).save(any());
 
     }
@@ -263,6 +314,7 @@ public class EventServiceTest {
                 null
         );
         assertThrows(BusinessException.class, () -> eventService.updateEvent(eventId, data));
+        verify(eventMapper, never()).updateEventFromDTO(data, event);
         verify(repository, never()).save(any());
     }
 
@@ -275,7 +327,7 @@ public class EventServiceTest {
         when(repository.findById(eventId)).thenReturn(Optional.of(event));
         eventService.deleteEvent(eventId);
 
-        verify(repository, times(1)).delete(any(Event.class));
+        verify(repository).delete(any(Event.class));
     }
 
 
