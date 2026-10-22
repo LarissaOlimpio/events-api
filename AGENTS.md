@@ -45,3 +45,7 @@ A aplicação depende de PostgreSQL configurado localmente. `src/main/resources/
 - Não altere arquivos fora do escopo solicitado.
 
 ## Decisões e estado atual
+- Autenticação JWT stateless implementada: login em `POST /api/auth/login`; segredo vem de `api.security.token.secret` e validade é configurada em horas, com padrão de 2 horas.
+- `POST /api/user` é público e cria usuários como `VIEWER`; rotas de usuário exigem `ADMIN`, leituras de eventos/cupons exigem autenticação e escritas exigem `ADMIN` ou `ORGANIZER`.
+- O filtro JWT é inserido na cadeia Spring Security e não é registrado em duplicidade pelo servlet; não há autorização por proprietário de evento/cupom nesta etapa.
+- Testes `JwtAuthenticationIntegrationTest` e `RoleAuthorizationTest` passaram; não adicionar regras de propriedade sem nova decisão.
