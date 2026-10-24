@@ -34,7 +34,7 @@ public class EventServiceTest {
     private EventService eventService;
 
     @Test
-    void shouldCreateEventSuccessfullyWhenEventIsRemoteAndAddressIsNull() {
+    void shouldCreateEventSuccessfullyWhenEventIsRemoteAndClearAddress() {
         EventRequestDTO data = new EventRequestDTO(
                 "Workshop Java",
                 "Description",
@@ -55,38 +55,6 @@ public class EventServiceTest {
         verify(eventMapper).map(data);
         verify(repository).save(any(Event.class));
 
-    }
-
-    @Test
-    void shouldCreateEventSuccessfullyWhenEventIsRemoteAndRemoveAddress() {
-        Address address = new Address();
-        address.setCity("Sao Paulo");
-        address.setUf("SP");
-
-        EventRequestDTO data = new EventRequestDTO(
-                "Workshop Java",
-                "Description",
-                OffsetDateTime.now().plusDays(5),
-                true,
-                "http://event.com",
-                null
-        );
-
-        Event event = new Event();
-        event.setRemote(true);
-        event.setAddress(address);
-
-        when(eventMapper.map(data)).thenReturn(event);
-        when(repository.save(event)).thenReturn(event);
-
-        Event result = eventService.createEvent(data);
-
-        assertNotNull(result);
-        assertTrue(result.getRemote());
-        assertNull(result.getAddress());
-
-        verify(eventMapper).map(data);
-        verify(repository).save(event);
     }
 
     @Test
@@ -166,7 +134,7 @@ public class EventServiceTest {
 
         Event event = new Event();
         event.setDate(OffsetDateTime.now().plusDays(20));
-        event.setRemote(false);
+        event.setRemote(true);
         event.setAddress(address);
 
         EventRequestDTO data = new EventRequestDTO(
@@ -181,7 +149,6 @@ public class EventServiceTest {
         when(repository.findById(eventId)).thenReturn(Optional.of(event));
         when(repository.save(event)).thenReturn(event);
 
-        event.setRemote(true);
         Event result = eventService.updateEvent(eventId, data);
 
         assertNotNull(result);
@@ -327,7 +294,7 @@ public class EventServiceTest {
         when(repository.findById(eventId)).thenReturn(Optional.of(event));
         eventService.deleteEvent(eventId);
 
-        verify(repository).delete(any(Event.class));
+        verify(repository).delete(event);
     }
 
 
@@ -340,6 +307,24 @@ public class EventServiceTest {
         when(repository.findById(eventId)).thenReturn(Optional.of(event));
 
         assertThrows(EventFinishedException.class, () -> eventService.deleteEvent(eventId));
+        verify(repository, never()).delete(any(Event.class));
+    }
+
+    @Test
+    void shouldThrowWhenUpdatingEventThatDoesNotExist() {
+        UUID eventId = UUID.randomUUID();
+        EventRequestDTO data = new EventRequestDTO("Title", "Description", OffsetDateTime.now().plusDays(1), true, "http://event.com", null);
+
+        assertThrows(BusinessException.class, () -> eventService.updateEvent(eventId, data));
+        verify(eventMapper, never()).updateEventFromDTO(any(), any());
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowWhenDeletingEventThatDoesNotExist() {
+        UUID eventId = UUID.randomUUID();
+
+        assertThrows(BusinessException.class, () -> eventService.deleteEvent(eventId));
         verify(repository, never()).delete(any(Event.class));
     }
 

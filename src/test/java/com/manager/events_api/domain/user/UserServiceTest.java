@@ -7,10 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.manager.events_api.infra.exceptions.BusinessException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -36,6 +38,19 @@ class UserServiceTest {
         verify(userRepository).save(userCaptor.capture());
         assertEquals(Role.VIEWER, userCaptor.getValue().getRole());
         assertEquals("encoded-password", userCaptor.getValue().getPassword());
+        verify(userRepository).existsByEmail(request.email());
+        verify(passwordEncoder).encode(request.password());
+    }
+
+    @Test
+    void shouldRejectDuplicateEmailWithoutEncodingOrSaving() {
+        UserRequestDTO request = new UserRequestDTO("Test User", "test@example.com", "password123");
+        when(userRepository.existsByEmail(request.email())).thenReturn(true);
+
+        org.junit.jupiter.api.Assertions.assertThrows(BusinessException.class, () -> userService.createUser(request));
+
+        verify(passwordEncoder, never()).encode(request.password());
+        verify(userRepository, never()).save(org.mockito.ArgumentMatchers.any(User.class));
     }
 }
 
