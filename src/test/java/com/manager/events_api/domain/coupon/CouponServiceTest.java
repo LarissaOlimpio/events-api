@@ -13,8 +13,8 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,9 +51,20 @@ public class CouponServiceTest {
         when(couponRepository.save(any(Coupon.class))).thenReturn(mappedCoupon);
         Coupon result = couponService.addCouponToEvent(eventId, couponRequestDTO);
 
-        assertNotNull(result);
-        verify(couponMapper, times(1)).map(couponRequestDTO);
-        verify(couponRepository, times(1)).save(any(Coupon.class));
+        assertSame(mappedCoupon, result);
+        assertSame(event, mappedCoupon.getEvent());
+        verify(couponMapper).map(couponRequestDTO);
+        verify(couponRepository).save(mappedCoupon);
+    }
+
+    @Test
+    void shouldThrowWhenEventDoesNotExist() {
+        UUID eventId = UUID.randomUUID();
+        CouponRequestDTO data = new CouponRequestDTO("SUMMER10", OffsetDateTime.now(), OffsetDateTime.now().plusDays(1), 20);
+
+        assertThrows(IllegalArgumentException.class, () -> couponService.addCouponToEvent(eventId, data));
+        verify(couponMapper, never()).map(any());
+        verify(couponRepository, never()).save(any());
     }
 
     @Test
@@ -109,10 +120,11 @@ public class CouponServiceTest {
 
 
         when(couponRepository.save(any(Coupon.class))).thenReturn(existingCoupon);
-        couponService.updateCoupon(couponId, couponRequestDTO);
+        Coupon result = couponService.updateCoupon(couponId, couponRequestDTO);
 
-        verify(couponMapper, times(1)).updateCouponFromDTO(couponRequestDTO, existingCoupon);
-        verify(couponRepository, times(1)).save(existingCoupon);
+        assertSame(existingCoupon, result);
+        verify(couponMapper).updateCouponFromDTO(couponRequestDTO, existingCoupon);
+        verify(couponRepository).save(existingCoupon);
 
     }
 
@@ -151,6 +163,16 @@ public class CouponServiceTest {
         );
 
         assertThrows(BusinessException.class, () -> couponService.updateCoupon(couponId, couponUpdate));
+        verify(couponRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowWhenUpdatingCouponThatDoesNotExist() {
+        UUID couponId = UUID.randomUUID();
+        CouponRequestDTO data = new CouponRequestDTO("SUMMER10", OffsetDateTime.now(), OffsetDateTime.now().plusDays(1), 20);
+
+        assertThrows(BusinessException.class, () -> couponService.updateCoupon(couponId, data));
+        verify(couponMapper, never()).updateCouponFromDTO(any(), any());
         verify(couponRepository, never()).save(any());
     }
 }

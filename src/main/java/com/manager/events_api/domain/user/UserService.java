@@ -30,7 +30,7 @@ public class UserService {
         newUser.setName(data.name());
         newUser.setEmail(data.email());
         newUser.setPassword(passwordEncoder.encode(data.password()));
-        newUser.setRole(parseRole(data.role()));
+        newUser.setRole(Role.VIEWER);
 
         return userRepository.save(newUser);
     }
@@ -41,14 +41,6 @@ public class UserService {
             throw new BusinessException("User with email " + data + " already exists");
         }
 
-    }
-
-    private Role parseRole(String role) {
-        try {
-            return Role.valueOf(role.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new BusinessException("Invalid role: " + role);
-        }
     }
 
     public Page<UserResponseDTO> findUsers(String name, Pageable pageable) {
