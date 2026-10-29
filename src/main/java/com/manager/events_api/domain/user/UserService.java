@@ -62,6 +62,17 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
+    public User updateRole(UUID id, Role newRole, User currentUser) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("User with id " + id + " not found"));
+        if (id.equals(currentUser.getId())) {
+            throw new BusinessException("Admin cannot change their own role");
+        }
+        user.setRole(newRole);
+        return userRepository.save(user);
+    }
+
     private void ensureEmailIsAvailableInUpdate(String email, UUID userId) {
         boolean exists = userRepository.existsByEmailAndIdNot(email, userId);
         if (exists) {

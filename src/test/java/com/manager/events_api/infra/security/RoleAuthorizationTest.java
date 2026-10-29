@@ -106,6 +106,14 @@ class RoleAuthorizationTest {
     }
 
     @Test
+    void userRoleUpdateWithoutTokenIs401() throws Exception {
+        mockMvc.perform(patch("/api/user/" + ID + "/role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"role\":\"ORGANIZER\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void userRoutesForbiddenForViewerAndOrganizer() throws Exception {
         for (Role role : new Role[]{Role.VIEWER, Role.ORGANIZER}) {
             String auth = bearer(role);
@@ -113,6 +121,9 @@ class RoleAuthorizationTest {
             mockMvc.perform(put("/api/user/" + ID).header("Authorization", auth)
                     .contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isForbidden());
             mockMvc.perform(delete("/api/user/" + ID).header("Authorization", auth)).andExpect(status().isForbidden());
+            mockMvc.perform(patch("/api/user/" + ID + "/role").header("Authorization", auth)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"role\":\"ORGANIZER\"}")).andExpect(status().isForbidden());
         }
     }
 
@@ -121,6 +132,9 @@ class RoleAuthorizationTest {
         String auth = bearer(Role.ADMIN);
         mockMvc.perform(get("/api/user").header("Authorization", auth)).andExpect(passedSecurity());
         mockMvc.perform(delete("/api/user/" + ID).header("Authorization", auth)).andExpect(passedSecurity());
+        mockMvc.perform(patch("/api/user/" + ID + "/role").header("Authorization", auth)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"role\":\"ORGANIZER\"}")).andExpect(passedSecurity());
     }
 
     // ---------- /api/event e /api/coupon ----------
