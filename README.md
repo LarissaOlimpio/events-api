@@ -29,10 +29,12 @@ and promotional codes, with JWT authentication and role-based access control.
     * Invalid, expired, tampered or missing tokens are rejected with `401 Unauthorized`.
     * Authenticated users without the required role receive `403 Forbidden`.
 * **User Management**:
-    * Public signup and admin-only user administration.
+    * Public signup that always creates a `VIEWER`.
+    * Admin-only user administration, including promoting or demoting users.
 * **Event Management**:
-    * Create and list events with details like title, date, description, and visual assets (img_url).
+    * Create, list, update and delete events with details like title, date and description.
     * Support for both remote and in-person events.
+    * Finished events cannot be edited or deleted.
 * **Coupon System**:
     * Link dynamic discount coupons to specific events.
     * Unique code validation and expiration/validity control.
@@ -40,22 +42,47 @@ and promotional codes, with JWT authentication and role-based access control.
     * Dedicated address management linked to events (City/UF).
 * **Reliable Data Migrations**:
     * Managed database evolution through Flyway scripts (V1, V2, V3, etc.), preventing schema inconsistency.
+
 * **Architecture & Patterns**:
+    * **Layered, MVC-style architecture**: controllers handle HTTP, services hold the business rules, and
+      repositories/entities handle persistence. JSON DTOs play the role of the view.
     * **DTO Pattern**: Separation between database entities and API responses using Request/Response DTOs.
-    * **Service Layer**: Decoupled business logic from controllers.
+    * **Service Layer**: Business logic decoupled from controllers.
     * **Repository Pattern**: Abstracted data access layer for clean maintenance.
     * **Security Filter Chain**: A custom `JwtAuthenticationFilter` integrated into the Spring Security chain.
 
 ## 🔐 Security & Access Rules
 
-| Endpoint                                                        | Access                                                  |
-|-----------------------------------------------------------------|---------------------------------------------------------|
-| `POST /api/auth/login`                                          | Public                                                  |
-| `POST /api/user` (signup)                                       | Public                                                  |
-| `GET /api/user`, `PUT /api/user/{id}`, `DELETE /api/user/{id}`  | `ADMIN` only                                            |
-| `GET /api/event/**`, `GET /api/coupon/**`                       | Any authenticated user (`VIEWER`, `ORGANIZER`, `ADMIN`) |
-| `POST`, `PUT`, `DELETE` on `/api/event/**` and `/api/coupon/**` | `ORGANIZER` or `ADMIN`                                  |
-| Any other route                                                 | Authenticated                                           |
+| Endpoint                                                              | Access                                                  |
+|-----------------------------------------------------------------------|---------------------------------------------------------|
+| `POST /api/auth/login`                                                | Public                                                  |
+| `POST /api/user` (signup)                                             | Public (always creates a `VIEWER`)                      |
+| `GET`, `PUT`, `DELETE` on `/api/user/**`                              | `ADMIN` only                                            |
+| `PATCH /api/user/{id}/role`                                           | `ADMIN` only (an admin cannot change their own role)    |
+| `GET /api/event/**`, `GET /api/coupon/**`                             | Any authenticated user (`VIEWER`, `ORGANIZER`, `ADMIN`) |
+| `POST`, `PUT`, `PATCH`, `DELETE` on `/api/event/**`, `/api/coupon/**` | `ORGANIZER` or `ADMIN`                                  |
+| Any other route                                                       | Authenticated                                           |                                             | Authenticated                                           |
+
+Notes:
+
+- Initial `ADMIN` account created via the database, before the implementation of the rule that only an admin can change
+  a user's role.
+- The role is never accepted from the signup request. Every new account starts as `VIEWER`, and only an `ADMIN` can
+  promote it.
+- Roles are loaded from the database on every request, so a role change takes effect immediately, without a new login.
+- Protected requests must send `Authorization: Bearer <token>`.
+- Missing, invalid, expired or tampered tokens return `401 Unauthorized`.
+- Authenticated users without the required role receive `403 Forbidden`.
+- CSRF protection is disabled on purpose: the API is stateless and the token travels in a header, not in a cookie.
+
+### Configuration
+
+| Property / variable                   | Description                            |
+|---------------------------------------|----------------------------------------|
+| `JWT_SECRET` (env var)                | Signing secret, at least 32 characters |
+| `api.security.token.expiration-hours` | Token lifetime in hours (default: `2`) |
+
+Never commit the secret. Set `JWT_SECRET` as an environment variable before running the application.
 
 ### Authentication flow
 
@@ -81,6 +108,27 @@ and promotional codes, with JWT authentication and role-based access control.
 ```
     Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
+
+## Testing and CI
+
+```bash
+./mvnw test
+```
+
+Unit tests cover the service layer, and `@WebMvcTest` integration tests cover authentication and the role rules of every
+route. A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the full test suite on every push and pull request.
+
+## AI-assisted development
+
+Parts of this project were developed with the help of the [OpenAI Codex CLI](https://github.com/openai/codex). The
+agent's context and working rules live in [`AGENTS.md`](AGENTS.md). AI-generated changes are reviewed as diffs before
+being applied and are validated by the automated test suite.
+
+## Planned
+
+- Ownership checks: only the `ORGANIZER` who owns an event or coupon (or an `ADMIN`) can update or delete it.
+- Password change and password reset.
+- Optional: JWT in an `HttpOnly` cookie, with CSRF protection re-enabled.
 
 ## 🚀 Getting Started
 

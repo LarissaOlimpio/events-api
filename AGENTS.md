@@ -75,3 +75,5 @@ valores para documentação ou logs.
 - O filtro JWT é inserido na cadeia Spring Security e não é registrado em duplicidade pelo servlet.
 - Testes `JwtAuthenticationIntegrationTest` e `RoleAuthorizationTest` passaram; não adicionar regras de propriedade sem
   nova decisão.
+- `PATCH /api/user/{id}/role` permite ADMIN alterar papel com `UserRoleRequestDTO`; resposta usa `UserResponseDTO`.
+- ADMIN não pode alterar o próprio papel; testes de serviço e autorização foram atualizados.
