@@ -12,10 +12,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.never;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -31,6 +29,9 @@ class UserServiceTest {
 
     @InjectMocks
     private UserService userService;
+
+    @Mock
+    private UserMapper userMapper;
 
     private User userWithId(UUID id, Role role) {
         User user = new User();
@@ -64,6 +65,64 @@ class UserServiceTest {
 
         verify(passwordEncoder, never()).encode(request.password());
         verify(userRepository, never()).save(org.mockito.ArgumentMatchers.any(User.class));
+    }
+
+    @Test
+    void shouldAllowUserToUpdateOwnData() {
+        UUID id = UUID.randomUUID();
+        User user = userWithId(id, Role.VIEWER);
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO("teste", "test@example.com");
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+
+        User result = userService.updateUser(id, dto, user);
+
+        assertEquals(user, result);
+        verify(userMapper).updateUserFromDTO(dto, user);
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void shouldAllowAdminToUpdateAnotherUser() {
+        UUID targetId = UUID.randomUUID();
+        User target = userWithId(targetId, Role.VIEWER);
+        User admin = userWithId(UUID.randomUUID(), Role.ADMIN);
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO("teste", "test@example.com");
+        when(userRepository.findById(targetId)).thenReturn(Optional.of(target));
+        when(userRepository.save(target)).thenReturn(target);
+
+        User result = userService.updateUser(targetId, dto, admin);
+
+        assertEquals(target, result);
+        verify(userMapper).updateUserFromDTO(dto, target);
+        verify(userRepository).save(target);
+    }
+
+    @Test
+    void shouldRejectNonAdminUpdatingAnotherUser() {
+        UUID targetId = UUID.randomUUID();
+        User currentUser = userWithId(UUID.randomUUID(), Role.ORGANIZER);
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO("teste", "test@example.com");
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> userService.updateUser(targetId, dto, currentUser));
+
+        assertEquals("You do not have permission to update this user", ex.getMessage());
+        verifyNoInteractions(userRepository, userMapper);
+    }
+
+    @Test
+    void shouldRejectUpdateForMissingUserWithoutSaving() {
+        UUID targetId = UUID.randomUUID();
+        User admin = userWithId(UUID.randomUUID(), Role.ADMIN);
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO("teste", "test@example.com");
+        when(userRepository.findById(targetId)).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class,
+                () -> userService.updateUser(targetId, dto, admin));
+
+        verify(userRepository, never()).save(any(User.class));
+        verifyNoInteractions(userMapper);
     }
 
     @Test

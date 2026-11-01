@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+import static com.manager.events_api.domain.user.Role.ADMIN;
+
 @Service
 public class UserService {
 
@@ -54,7 +56,13 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(UUID userId, @Valid UserUpdateRequestDTO data) {
+    public User updateUser(UUID userId, @Valid UserUpdateRequestDTO data, User currentUser) {
+        if (!currentUser.getId().equals(userId)
+                && currentUser.getRole() != ADMIN) {
+
+            throw new BusinessException(
+                    "You do not have permission to update this user");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("User with id " + userId + " not found"));
         ensureEmailIsAvailableInUpdate(data.email(), userId);
@@ -64,6 +72,9 @@ public class UserService {
 
     @Transactional
     public User updateRole(UUID id, Role newRole, User currentUser) {
+        if (currentUser.getRole() != ADMIN) {
+            throw new BusinessException("Only administrators can change user roles");
+        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("User with id " + id + " not found"));
         if (id.equals(currentUser.getId())) {
