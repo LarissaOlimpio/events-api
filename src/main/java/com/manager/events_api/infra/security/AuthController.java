@@ -1,5 +1,9 @@
 package com.manager.events_api.infra.security;
 
+import com.manager.events_api.domain.user.ForgotPasswordRequestDTO;
+import com.manager.events_api.domain.user.PasswordResetService;
+import com.manager.events_api.domain.user.ResetPasswordRequestDTO;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,10 +23,25 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthenticationManager authenticationManager, TokenService tokenService) {
+    public AuthController(AuthenticationManager authenticationManager, TokenService tokenService,
+                          PasswordResetService passwordResetService) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
+        this.passwordResetService = passwordResetService;
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody @Valid ForgotPasswordRequestDTO request) {
+        passwordResetService.forgotPassword(request);
+        return ResponseEntity.accepted().body("If an account exists for this email, password reset instructions have been sent.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequestDTO request) {
+        passwordResetService.resetPassword(request);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/login")

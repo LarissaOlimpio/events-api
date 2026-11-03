@@ -11,6 +11,7 @@ import com.manager.events_api.domain.user.User;
 import com.manager.events_api.domain.user.UserController;
 import com.manager.events_api.domain.user.UserMapper;
 import com.manager.events_api.domain.user.UserService;
+import com.manager.events_api.domain.user.PasswordResetService;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,8 @@ class RoleAuthorizationTest {
     UserDetailsService userDetailsService;
     @MockitoBean
     UserService userService;
+    @MockitoBean
+    PasswordResetService passwordResetService;
     @MockitoBean
     EventService eventService;
     @MockitoBean

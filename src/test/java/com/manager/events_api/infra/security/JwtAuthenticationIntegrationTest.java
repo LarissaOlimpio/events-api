@@ -7,6 +7,7 @@ import com.manager.events_api.domain.event.EventController;
 import com.manager.events_api.domain.event.EventService;
 import com.manager.events_api.domain.user.Role;
 import com.manager.events_api.domain.user.User;
+import com.manager.events_api.domain.user.PasswordResetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,9 @@ class JwtAuthenticationIntegrationTest {
 
     @MockitoBean
     private UserDetailsService userDetailsService;
+
+    @MockitoBean
+    private PasswordResetService passwordResetService;
 
     @MockitoBean
     private EventService eventService;
