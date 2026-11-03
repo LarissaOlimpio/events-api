@@ -53,6 +53,14 @@ public class UserController {
         return ResponseEntity.ok(userMapper.toUserResponseDTO(updatedUser));
     }
 
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @RequestBody @Valid ChangePasswordRequestDTO data,
+            @AuthenticationPrincipal User currentUser) {
+        userService.changePassword(data, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> delete(@PathVariable UUID userId) {
         this.userService.deleteUser(userId);

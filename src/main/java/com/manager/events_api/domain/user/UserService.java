@@ -84,6 +84,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
+    public void changePassword(ChangePasswordRequestDTO data, User currentUser) {
+        if (!passwordEncoder.matches(data.currentPassword(), currentUser.getPassword())) {
+            throw new BusinessException("Current password is incorrect");
+        }
+        if (passwordEncoder.matches(data.newPassword(), currentUser.getPassword())) {
+            throw new BusinessException("New password must be different from current password");
+        }
+        currentUser.setPassword(passwordEncoder.encode(data.newPassword()));
+        userRepository.save(currentUser);
+    }
+
     private void ensureEmailIsAvailableInUpdate(String email, UUID userId) {
         boolean exists = userRepository.existsByEmailAndIdNot(email, userId);
         if (exists) {
