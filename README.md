@@ -53,15 +53,18 @@ and promotional codes, with JWT authentication and role-based access control.
 
 ## 🔐 Security & Access Rules
 
-| Endpoint                                                              | Access                                                  |
-|-----------------------------------------------------------------------|---------------------------------------------------------|
-| `POST /api/auth/login`                                                | Public                                                  |
-| `POST /api/user` (signup)                                             | Public (always creates a `VIEWER`)                      |
-| `GET`, `PUT`, `DELETE` on `/api/user/**`                              | `ADMIN` only                                            |
-| `PATCH /api/user/{id}/role`                                           | `ADMIN` only (an admin cannot change their own role)    |
-| `GET /api/event/**`, `GET /api/coupon/**`                             | Any authenticated user (`VIEWER`, `ORGANIZER`, `ADMIN`) |
-| `POST`, `PUT`, `PATCH`, `DELETE` on `/api/event/**`, `/api/coupon/**` | `ORGANIZER` or `ADMIN`                                  |
-| Any other route                                                       | Authenticated                                           |                                             | Authenticated                                           |
+| Endpoint                                                              | Access                                                      |
+|-----------------------------------------------------------------------|-------------------------------------------------------------|
+| `POST /api/auth/login`                                                | Public                                                      |
+| `POST /api/auth/forgot-password`                                      | Public (always returns `202`, even if the email is unknown) |
+| `POST /api/auth/reset-password`                                       | Public (requires a valid reset token)                       |
+| `POST /api/user` (signup)                                             | Public (always creates a `VIEWER`)                          |
+| `PUT /api/user/{id}`                                                  | The user themselves or `ADMIN` (email only, no role)        |
+| `GET`, `DELETE` on `/api/user/**`                                     | `ADMIN` only                                                |
+| `PATCH /api/user/{id}/role`                                           | `ADMIN` only (an admin cannot change their own role)        |
+| `GET /api/event/**`, `GET /api/coupon/**`                             | Any authenticated user (`VIEWER`, `ORGANIZER`, `ADMIN`)     |
+| `POST`, `PUT`, `PATCH`, `DELETE` on `/api/event/**`, `/api/coupon/**` | `ORGANIZER` or `ADMIN`                                      |
+| Any other route                                                       | Authenticated                                               |
 
 Notes:
 
@@ -74,6 +77,13 @@ Notes:
 - Missing, invalid, expired or tampered tokens return `401 Unauthorized`.
 - Authenticated users without the required role receive `403 Forbidden`.
 - CSRF protection is disabled on purpose: the API is stateless and the token travels in a header, not in a cookie.
+
+### Password reset (work in progress)
+
+The forgot/reset password flow is under construction. Email delivery is not
+implemented yet: the reset link is only **printed in the console** by the
+`dev` profile, which is active by default in `application.properties`.
+Override it with `SPRING_PROFILES_ACTIVE` in any non-development environment.****
 
 ### Configuration
 
@@ -144,11 +154,14 @@ Follow these steps to run the project locally:
    Update the `src/main/resources/application.properties` with your PostgreSQL credentials and a JWT secret:
 
 ```properties
-    spring.datasource.url=jdbc:postgresql://localhost:5432/database_name
+spring.datasource.url=jdbc:postgresql://localhost:5432/database_name
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 # JWT secret (use a long, random value with 32+ characters)
 api.security.token.secret=${JWT_SECRET:change-me-with-a-long-random-secret}
+# Password reset (optional, defaults shown)
+app.password-reset.expiration-minutes=30
+app.frontend-url=http://localhost:3000
 ```
 
     > ⚠️ Never commit a real secret. In production, provide it through an environment variable (e.g. `JWT_SECRET`).
