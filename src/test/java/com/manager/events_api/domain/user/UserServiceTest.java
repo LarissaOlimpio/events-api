@@ -161,5 +161,49 @@ class UserServiceTest {
 
         verify(userRepository, never()).save(any(User.class));
     }
+
+    @Test
+    void shouldChangePasswordAndSaveNewHash() {
+        User currentUser = userWithId(UUID.randomUUID(), Role.VIEWER);
+        currentUser.setPassword("old-hash");
+        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("old-password", "new-password");
+        when(passwordEncoder.matches("old-password", "old-hash")).thenReturn(true);
+        when(passwordEncoder.matches("new-password", "old-hash")).thenReturn(false);
+        when(passwordEncoder.encode("new-password")).thenReturn("new-hash");
+        when(userRepository.save(currentUser)).thenReturn(currentUser);
+
+        userService.changePassword(request, currentUser);
+
+        assertEquals("new-hash", currentUser.getPassword());
+        verify(userRepository).save(currentUser);
+        verify(passwordEncoder).encode("new-password");
+    }
+
+    @Test
+    void shouldRejectPasswordChangeWhenCurrentPasswordIsWrong() {
+        User currentUser = userWithId(UUID.randomUUID(), Role.VIEWER);
+        currentUser.setPassword("old-hash");
+        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("wrong-password", "new-password");
+        when(passwordEncoder.matches("wrong-password", "old-hash")).thenReturn(false);
+
+        assertThrows(BusinessException.class, () -> userService.changePassword(request, currentUser));
+
+        verify(userRepository, never()).save(any(User.class));
+        verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
+    void shouldRejectPasswordChangeWhenNewPasswordMatchesCurrentPassword() {
+        User currentUser = userWithId(UUID.randomUUID(), Role.VIEWER);
+        currentUser.setPassword("old-hash");
+        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("old-password", "same-password");
+        when(passwordEncoder.matches("old-password", "old-hash")).thenReturn(true);
+        when(passwordEncoder.matches("same-password", "old-hash")).thenReturn(true);
+
+        assertThrows(BusinessException.class, () -> userService.changePassword(request, currentUser));
+
+        verify(userRepository, never()).save(any(User.class));
+        verify(passwordEncoder, never()).encode(any());
+    }
 }
 
